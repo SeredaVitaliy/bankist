@@ -281,6 +281,7 @@ const inputClosePin = document.querySelector('.form__input--pin');
 
 //cоздаем DOM элементы
 const displayMovements = function (movements) {
+  containerMovements.innerHTML = ''; // чтобы убрать начальные данные
   movements.forEach(function (mov, i) {
     const type = mov > 0 ? 'deposit' : 'withdrawal';
 
@@ -296,3 +297,32 @@ const displayMovements = function (movements) {
   });
 };
 displayMovements(account1.movements);
+// при помощи map вычислим имена пользователей для каждого владельца учетной записи в приложении
+//Сначала создадим функцию для одной учетной записи, а затем обощим эту функцию для всех учетных записей:
+/* 
+const user = 'Steven Thomas Williams'; //stw
+const username = user
+  .toLowerCase()
+  .split(' ')
+  .map(function (name) {
+    return name[0];
+  })
+  .join('');*/
+const createUsernames = function (accs) {
+  //делаем для каждой учетной записи
+  accs.forEach(function (acc) {
+    acc.username = acc.owner
+      .toLowerCase()
+      .split(' ')
+      .map(function (name) {
+        return name[0];
+      })
+      .join('');
+  });
+};
+createUsernames(accounts);
+console.log(accounts);
+
+//теперь надо вычислить имя пользователя для каждого владельца учетной записи в массиве учетных записей
+
+// если в виде стрелочной: username = user.toLowerCase().split(' ').map(name => name[0]).join('')
