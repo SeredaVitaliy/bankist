@@ -316,19 +316,46 @@ const createUsernames = function (accs) {
       .split(' ')
       .map(function (name) {
         return name[0];
+        UR;
       })
       .join('');
   });
 };
 createUsernames(accounts);
-console.log(accounts);
+// console.log(accounts);
 
 //теперь надо вычислить имя пользователя для каждого владельца учетной записи в массиве учетных записей
 
 // если в виде стрелочной: username = user.toLowerCase().split(' ').map(name => name[0]).join('')
+
+//расчет снятых и закинутых средств. расчет выплаченных процентов
+//сумма зачислений
+const calcDisplaySummary = function (movements) {
+  const incomes = movements
+    .filter(mov => mov > 0)
+    .reduce((acc, mov) => acc + mov, 0);
+  labelSumIn.textContent = `${incomes}€`;
+  //сумма снятых
+  const out = movements
+    .filter(mov => mov < 0)
+    .reduce((acc, mov) => acc + mov, 0);
+  labelSumOut.textContent = `${Math.abs(out)}€`;
+
+  //вычисляем процент от вклада. Допустим, что процент 1.2 начисляется при каждом вкладе.
+  const interest = movements
+    .filter(mov => mov > 0)
+    .map(deposit => (deposit * 1.2) / 100)
+    .filter((int, i, arr) => {
+      return int >= 1;
+    })
+    .reduce((acc, int) => acc + int, 0);
+  labelSumInterest.textContent = `${interest}€`;
+};
+calcDisplaySummary(account1.movements);
+
 //рассчитаем и выведем баланс
-const calcDisplayBalace = function (movement) {
-  const balance = movement.reduce((acc, mov) => acc + mov, 0);
-  labelBalance.textContent = `${balance} EUR`;
+const calcDisplayBalace = function (movements) {
+  const balance = movements.reduce((acc, mov) => acc + mov, 0);
+  labelBalance.textContent = `${balance}€`;
 };
 calcDisplayBalace(account1.movements);
