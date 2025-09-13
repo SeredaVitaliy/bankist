@@ -251,7 +251,14 @@ const account4 = {
   pin: 4444,
 };
 
-const accounts = [account1, account2, account3, account4];
+const account5 = {
+  owner: 'Vitaliy Sereda',
+  movements: [1000, 600, 100, 50, 90],
+  interestRate: 1,
+  pin: 5555,
+};
+
+const accounts = [account1, account2, account3, account4, account5];
 
 // Elements
 const labelWelcome = document.querySelector('.welcome');
@@ -296,7 +303,6 @@ const displayMovements = function (movements) {
     containerMovements.insertAdjacentHTML('afterbegin', html); //принимает 2 параметра. 1 - то, куда хотим вставить элемент.  2 - строка, содержащая код, который мы хотим вставить
   });
 };
-displayMovements(account1.movements);
 // при помощи map вычислим имена пользователей для каждого владельца учетной записи в приложении
 //Сначала создадим функцию для одной учетной записи, а затем обощим эту функцию для всех учетных записей:
 /* 
@@ -328,34 +334,63 @@ createUsernames(accounts);
 
 // если в виде стрелочной: username = user.toLowerCase().split(' ').map(name => name[0]).join('')
 
-//расчет снятых и закинутых средств. расчет выплаченных процентов
+//расчет снятых и закинутых средств. расчет процентов по вкладу
 //сумма зачислений
-const calcDisplaySummary = function (movements) {
-  const incomes = movements
+const calcDisplaySummary = function (acc) {
+  const incomes = acc.movements
     .filter(mov => mov > 0)
     .reduce((acc, mov) => acc + mov, 0);
   labelSumIn.textContent = `${incomes}€`;
   //сумма снятых
-  const out = movements
+  const out = acc.movements
     .filter(mov => mov < 0)
     .reduce((acc, mov) => acc + mov, 0);
   labelSumOut.textContent = `${Math.abs(out)}€`;
 
-  //вычисляем процент от вклада. Допустим, что процент 1.2 начисляется при каждом вкладе.
-  const interest = movements
+  //вычисляем процент от вклада.
+  const interest = acc.movements
     .filter(mov => mov > 0)
-    .map(deposit => (deposit * 1.2) / 100)
+    .map(deposit => (deposit * acc.interestRate) / 100)
     .filter((int, i, arr) => {
       return int >= 1;
     })
     .reduce((acc, int) => acc + int, 0);
   labelSumInterest.textContent = `${interest}€`;
 };
-calcDisplaySummary(account1.movements);
 
 //рассчитаем и выведем баланс
 const calcDisplayBalace = function (movements) {
   const balance = movements.reduce((acc, mov) => acc + mov, 0);
   labelBalance.textContent = `${balance}€`;
 };
-calcDisplayBalace(account1.movements);
+
+//реализация входа в систему
+//обработчики событий
+
+let currentAccount;
+
+btnLogin.addEventListener('click', function (e) {
+  e.preventDefault(); //предотвращение отправки формы
+
+  //считывание пользователя
+  currentAccount = accounts.find(
+    acc => acc.username === inputLoginUsername.value
+  );
+  console.log(currentAccount);
+
+  if (currentAccount?.pin === Number(inputLoginPin.value)) {
+    //Отображение пользовательского интерфейса и приветствие
+    labelWelcome.textContent = `Welcome back, ${
+      currentAccount.owner.split(' ')[0]
+    }`;
+    containerApp.style.opacity = 1;
+
+    //очистка полей ввода
+    inputLoginUsername.value = inputLoginPin.value = '';
+    inputLoginPin.blur(); //чтобы поле воода pin потеряло фокус
+    //баланс, депозит
+    displayMovements(currentAccount.movements);
+    calcDisplayBalace(currentAccount.movements);
+    calcDisplaySummary(currentAccount);
+  }
+});
