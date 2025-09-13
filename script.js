@@ -326,3 +326,9 @@ console.log(accounts);
 //теперь надо вычислить имя пользователя для каждого владельца учетной записи в массиве учетных записей
 
 // если в виде стрелочной: username = user.toLowerCase().split(' ').map(name => name[0]).join('')
+//рассчитаем и выведем баланс
+const calcDisplayBalace = function (movement) {
+  const balance = movement.reduce((acc, mov) => acc + mov, 0);
+  labelBalance.textContent = `${balance} EUR`;
+};
+calcDisplayBalace(account1.movements);
