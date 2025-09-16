@@ -359,9 +359,16 @@ const calcDisplaySummary = function (acc) {
 };
 
 //рассчитаем и выведем баланс
-const calcDisplayBalace = function (movements) {
-  const balance = movements.reduce((acc, mov) => acc + mov, 0);
-  labelBalance.textContent = `${balance}€`;
+const calcDisplayBalace = function (acc) {
+  acc.balance = acc.movements.reduce((acc, mov) => acc + mov, 0);
+  labelBalance.textContent = `${acc.balance}€`;
+};
+
+//вызов функций
+const updateUI = function (acc) {
+  displayMovements(acc.movements);
+  calcDisplayBalace(acc);
+  calcDisplaySummary(acc);
 };
 
 //реализация входа в систему
@@ -389,8 +396,29 @@ btnLogin.addEventListener('click', function (e) {
     inputLoginUsername.value = inputLoginPin.value = '';
     inputLoginPin.blur(); //чтобы поле воода pin потеряло фокус
     //баланс, депозит
-    displayMovements(currentAccount.movements);
-    calcDisplayBalace(currentAccount.movements);
-    calcDisplaySummary(currentAccount);
+
+    updateUI(currentAccount);
+  }
+});
+// реализация перевода денег от одного пользователя к другому
+btnTransfer.addEventListener('click', function (e) {
+  e.preventDefault();
+  const amount = Number(inputTransferAmount.value);
+  const receiverAcc = accounts.find(
+    acc => acc.username === inputTransferTo.value
+  );
+
+  inputTransferAmount.value = inputTransferTo.value = '';
+
+  if (
+    amount > 0 &&
+    receiverAcc &&
+    currentAccount.balance >= amount &&
+    receiverAcc?.username !== currentAccount.username
+  ) {
+    currentAccount.movements.push(-amount);
+    receiverAcc.movements.push(amount);
+
+    updateUI(currentAccount);
   }
 });
