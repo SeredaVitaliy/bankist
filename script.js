@@ -422,6 +422,20 @@ btnTransfer.addEventListener('click', function (e) {
     updateUI(currentAccount);
   }
 });
+// запрос кредита в банке. Креди предоставляется только в том случае, если  сумма вклада превышает или равна 10% от запрашиваемой суммы кредита
+btnLoan.addEventListener('click', function (e) {
+  e.preventDefault();
+
+  const amount = Number(inputLoanAmount.value);
+
+  if (amount > 0 && currentAccount.movements.some(mov => mov >= amount / 10)) {
+    //добавление суммы
+    currentAccount.movements.push(amount);
+
+    updateUI(currentAccount);
+  }
+  inputLoanAmount.value = '';
+});
 
 //закрытие(удаление) учетной записи
 btnClose.addEventListener('click', function (e) {
