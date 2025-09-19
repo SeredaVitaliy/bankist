@@ -89,19 +89,28 @@ const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
 
 //cоздаем DOM элементы
-const displayMovements = function (movements, sort = false) {
+const displayMovements = function (acc, sort = false) {
   containerMovements.innerHTML = ''; // чтобы убрать начальные данные
   //сортировка массива
-  const movs = sort ? movements.slice().sort((a, b) => a - b) : movements;
+  const movs = sort
+    ? acc.movements.slice().sort((a, b) => a - b)
+    : acc.movements;
 
   movs.forEach(function (mov, i) {
     const type = mov > 0 ? 'deposit' : 'withdrawal';
+
+    const date = new Date(acc.movementsDates[i]); //перебор двух массивов данных
+    const day = `${date.getDate()}`.padStart(2, 0);
+    const month = `${date.getMonth() + 1}`.padStart(2, 0);
+    const year = date.getFullYear();
+    const displayDate = `${day}/${month}/${year}`;
 
     const html = `
     <div class="movements__row">
           <div class="movements__type movements__type--${type}">${
       i + 1
     } ${type}</div>
+          <div class="movements__date">${displayDate}</div>
           <div class="movements__value">${mov.toFixed(2)}€</div>
         </div>`;
 
@@ -171,7 +180,7 @@ const calcDisplayBalace = function (acc) {
 
 //вызов функций
 const updateUI = function (acc) {
-  displayMovements(acc.movements);
+  displayMovements(acc);
   calcDisplayBalace(acc);
   calcDisplaySummary(acc);
 };
@@ -180,6 +189,13 @@ const updateUI = function (acc) {
 //обработчики событий
 
 let currentAccount;
+
+//Всегда произведен вход в систему
+currentAccount = account1;
+updateUI(currentAccount);
+containerApp.style.opacity = 1;
+
+//нужно поставить день/месяц/год
 
 btnLogin.addEventListener('click', function (e) {
   e.preventDefault(); //предотвращение отправки формы
@@ -196,6 +212,15 @@ btnLogin.addEventListener('click', function (e) {
       currentAccount.owner.split(' ')[0]
     }`;
     containerApp.style.opacity = 1;
+
+    //Создание текущей даты
+    const now = new Date();
+    const day = `${now.getDate()}`.padStart(2, 0);
+    const month = `${now.getMonth() + 1}`.padStart(2, 0);
+    const year = now.getFullYear();
+    const hour = `${now.getHours()}`.padStart(2, 0);
+    const min = `${now.getMinutes()}`.padStart(2, 0);
+    labelDate.textContent = `${day}/${month}/${year}, ${hour}:${min}`;
 
     //очистка полей ввода
     inputLoginUsername.value = inputLoginPin.value = '';
@@ -224,6 +249,10 @@ btnTransfer.addEventListener('click', function (e) {
     currentAccount.movements.push(-amount);
     receiverAcc.movements.push(amount);
 
+    //Добавление даты перевода
+    currentAccount.movementsDates.push(new Date().toISOString());
+    receiverAcc.movementsDates.push(new Date().toISOString());
+
     updateUI(currentAccount);
   }
 });
@@ -236,6 +265,9 @@ btnLoan.addEventListener('click', function (e) {
   if (amount > 0 && currentAccount.movements.some(mov => mov >= amount / 10)) {
     //добавление суммы
     currentAccount.movements.push(amount);
+
+    //добавление времени
+    currentAccount.movementsDates.push(new Date().toISOString());
 
     updateUI(currentAccount);
   }
