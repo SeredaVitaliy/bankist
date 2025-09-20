@@ -258,14 +258,38 @@ const updateUI = function (acc) {
 //реализация входа в систему
 //обработчики событий
 
-let currentAccount;
-
 //Всегда произведен вход в систему
-currentAccount = account1;
-updateUI(currentAccount);
-containerApp.style.opacity = 1;
+// currentAccount = account1;
+// updateUI(currentAccount);
+// containerApp.style.opacity = 1;
 
-//нужно поставить день/месяц/год
+//создание таймера выхода из системы
+const startLogOutTimer = function () {
+  const tick = function () {
+    const min = String(Math.trunc(time / 60)).padStart(2, 0);
+    const sec = String(time % 60).padStart(2, 0);
+    //вывод каждой секунды в пользовательский интерфейс
+    labelTimer.textContent = `${min}:${sec}`;
+
+    //когда время будет 0, то остановить таймер и выйти из системы
+    if (time === 0) {
+      clearInterval(timer);
+      labelWelcome.textContent = 'Log in to get started';
+      containerApp.style.opacity = 0;
+    }
+
+    //уменьшается каждая секунда
+    time--;
+  };
+  //установка времени на 3 минуты
+  let time = 180;
+  //запуск таймера каждую секунду
+  tick();
+  const timer = setInterval(tick, 1000);
+  return timer;
+};
+
+let currentAccount, timer;
 
 btnLogin.addEventListener('click', function (e) {
   e.preventDefault(); //предотвращение отправки формы
@@ -313,6 +337,10 @@ btnLogin.addEventListener('click', function (e) {
     inputLoginPin.blur(); //чтобы поле воода pin потеряло фокус
     //баланс, депозит
 
+    //настройка таймера на сброс при входе другого пользователя
+    if (timer) clearInterval(timer);
+    timer = startLogOutTimer();
+
     updateUI(currentAccount);
   }
 });
@@ -340,6 +368,10 @@ btnTransfer.addEventListener('click', function (e) {
     receiverAcc.movementsDates.push(new Date().toISOString());
 
     updateUI(currentAccount);
+
+    //сброс таймера выхода
+    clearInterval(timer);
+    timer = startLogOutTimer();
   }
 });
 // запрос кредита в банке. Креди предоставляется только в том случае, если  сумма вклада превышает или равна 10% от запрашиваемой суммы кредита
@@ -349,13 +381,20 @@ btnLoan.addEventListener('click', function (e) {
   const amount = Math.floor(inputLoanAmount.value); //добавление округления в меньшую сторону
 
   if (amount > 0 && currentAccount.movements.some(mov => mov >= amount / 10)) {
-    //добавление суммы
-    currentAccount.movements.push(amount);
+    //добавление таймера для получения кредита
+    setTimeout(function () {
+      //добавление суммы
+      currentAccount.movements.push(amount);
 
-    //добавление времени
-    currentAccount.movementsDates.push(new Date().toISOString());
+      //добавление времени
+      currentAccount.movementsDates.push(new Date().toISOString());
 
-    updateUI(currentAccount);
+      updateUI(currentAccount);
+
+      //сброс таймера выхода
+      clearInterval(timer);
+      timer = startLogOutTimer();
+    }, 3000);
   }
   inputLoanAmount.value = '';
 });
@@ -377,6 +416,7 @@ btnClose.addEventListener('click', function (e) {
     accounts.splice(index, 1);
 
     //скрытие UI
+    labelWelcome.textContent = 'Log in to get started';
     containerApp.style.opacity = 0;
   }
   inputCloseUsername.value = inputClosePin.value = '';
@@ -386,6 +426,6 @@ btnClose.addEventListener('click', function (e) {
 let sorted = false; //начальное, противоположное сортировке
 btnSort.addEventListener('click', function (e) {
   e.preventDefault();
-  displayMovements(currentAccount.movements, !sorted);
+  displayMovements(currentAccount, !sorted);
   sorted = !sorted;
 });
